@@ -5,7 +5,7 @@ import { map, includes } from "lodash";
 import Button from "antd/lib/button";
 import Dropdown from "antd/lib/dropdown";
 import Menu from "antd/lib/menu";
-import Icon from "antd/lib/icon";
+import EllipsisOutlinedIcon from "@ant-design/icons/EllipsisOutlined";
 import Modal from "antd/lib/modal";
 import Tooltip from "antd/lib/tooltip";
 import FavoritesControl from "@/components/FavoritesControl";
@@ -41,7 +41,9 @@ function DashboardPageTitle({ dashboardOptions }) {
             ignoreBlanks
           />
         </h3>
-        <img src={dashboard.user.profile_image_url} className="profile-image" alt={dashboard.user.name} />
+        <Tooltip title={dashboard.user.name} placement="bottom">
+          <img src={dashboard.user.profile_image_url} className="profile-image" alt={dashboard.user.name} />
+        </Tooltip>
       </div>
       <DashboardTagsControl
         tags={dashboard.tags}
@@ -154,7 +156,7 @@ function DashboardMoreOptionsButton({ dashboardOptions }) {
         </Menu>
       }>
       <Button className="icon-button m-l-5" data-test="DashboardMoreButton">
-        <Icon type="ellipsis" rotate={90} />
+        <EllipsisOutlinedIcon rotate={90} />
       </Button>
     </Dropdown>
   );
@@ -176,7 +178,8 @@ function DashboardControl({ dashboardOptions }) {
   const showPublishButton = dashboard.is_draft;
   const showRefreshButton = true;
   const showFullscreenButton = !dashboard.is_draft;
-  const showShareButton = dashboard.publicAccessEnabled || (canEditDashboard && !dashboard.is_draft);
+  const canShareDashboard = canEditDashboard && !dashboard.is_draft;
+  const showShareButton = !clientConfig.disablePublicUrls && (dashboard.publicAccessEnabled || canShareDashboard);
   const showMoreOptionsButton = canEditDashboard;
   return (
     <div className="dashboard-control">

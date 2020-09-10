@@ -4,7 +4,7 @@ import cx from "classnames";
 import { find, orderBy } from "lodash";
 import useMedia from "use-media";
 import Tabs from "antd/lib/tabs";
-import VisualizationRenderer from "@/visualizations/components/VisualizationRenderer";
+import VisualizationRenderer from "@/components/visualizations/VisualizationRenderer";
 import Button from "antd/lib/button";
 import Modal from "antd/lib/modal";
 
@@ -17,7 +17,7 @@ function EmptyState({ title, message, refreshButton }) {
     <div className="query-results-empty-state">
       <div className="empty-state-content">
         <div>
-          <img src="/static/images/illustrations/no-query-results.svg" alt="No Query Results Illustration" />
+          <img src="static/images/illustrations/no-query-results.svg" alt="No Query Results Illustration" />
         </div>
         <h3>{title}</h3>
         <div className="m-b-20">{message}</div>
@@ -133,7 +133,6 @@ export default function QueryVisualizationTabs({
       {orderedVisualizations.map(visualization => (
         <TabPane
           key={`${visualization.id}`}
-          data-test={`QueryPageVisualization${selectedTab}`}
           tab={
             <TabWithDeleteButton
               data-test={`QueryPageVisualizationTab${visualization.id}`}

@@ -1,18 +1,22 @@
-import React, { useEffect, useState } from "react";
-import { axios } from "@/services/axios";
-import PropTypes from "prop-types";
 import { includes, isEmpty } from "lodash";
+import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
+
 import Alert from "antd/lib/alert";
-import Icon from "antd/lib/icon";
+import Link from "@/components/Link";
+import LoadingOutlinedIcon from "@ant-design/icons/LoadingOutlined";
 import routeWithUserSession from "@/components/ApplicationArea/routeWithUserSession";
 import EmptyState from "@/components/empty-state/EmptyState";
 import DynamicComponent from "@/components/DynamicComponent";
 import BeaconConsent from "@/components/BeaconConsent";
+
+import { axios } from "@/services/axios";
 import recordEvent from "@/services/recordEvent";
 import { messages } from "@/services/auth";
 import notification from "@/services/notification";
 import { Dashboard } from "@/services/dashboard";
 import { Query } from "@/services/query";
+import routes from "@/services/routes";
 
 import "./Home.less";
 
@@ -25,12 +29,12 @@ function DeprecatedEmbedFeatureAlert() {
         <>
           You have enabled <code>ALLOW_PARAMETERS_IN_EMBEDS</code>. This setting is now deprecated and should be turned
           off. Parameters in embeds are supported by default.{" "}
-          <a
+          <Link
             href="https://discuss.redash.io/t/support-for-parameters-in-embedded-visualizations/3337"
             target="_blank"
             rel="noopener noreferrer">
             Read more
-          </a>
+          </Link>
           .
         </>
       }
@@ -79,18 +83,18 @@ function FavoriteList({ title, resource, itemUrl, emptyState }) {
     <>
       <div className="d-flex align-items-center m-b-20">
         <p className="flex-fill f-500 c-black m-0">{title}</p>
-        {loading && <Icon type="loading" />}
+        {loading && <LoadingOutlinedIcon />}
       </div>
       {!isEmpty(items) && (
         <div className="list-group">
           {items.map(item => (
-            <a key={itemUrl(item)} className="list-group-item" href={itemUrl(item)}>
+            <Link key={itemUrl(item)} className="list-group-item" href={itemUrl(item)}>
               <span className="btn-favourite m-r-5">
                 <i className="fa fa-star" aria-hidden="true" />
               </span>
               {item.name}
               {item.is_draft && <span className="label label-default m-l-5">Unpublished</span>}
-            </a>
+            </Link>
           ))}
         </div>
       )}
@@ -116,13 +120,13 @@ function DashboardAndQueryFavoritesList() {
             <FavoriteList
               title="Favorite Dashboards"
               resource={Dashboard}
-              itemUrl={dashboard => `dashboard/${dashboard.slug}`}
+              itemUrl={dashboard => dashboard.url}
               emptyState={
                 <p>
                   <span className="btn-favourite m-r-5">
                     <i className="fa fa-star" aria-hidden="true" />
                   </span>
-                  Favorite <a href="dashboards">Dashboards</a> will appear here
+                  Favorite <Link href="dashboards">Dashboards</Link> will appear here
                 </p>
               }
             />
@@ -137,7 +141,7 @@ function DashboardAndQueryFavoritesList() {
                   <span className="btn-favourite m-r-5">
                     <i className="fa fa-star" aria-hidden="true" />
                   </span>
-                  Favorite <a href="queries">Queries</a> will appear here
+                  Favorite <Link href="queries">Queries</Link> will appear here
                 </p>
               }
             />
@@ -175,8 +179,11 @@ function Home() {
   );
 }
 
-export default routeWithUserSession({
-  path: "/",
-  title: "Redash",
-  render: pageProps => <Home {...pageProps} />,
-});
+routes.register(
+  "Home",
+  routeWithUserSession({
+    path: "/",
+    title: "Redash",
+    render: pageProps => <Home {...pageProps} />,
+  })
+);

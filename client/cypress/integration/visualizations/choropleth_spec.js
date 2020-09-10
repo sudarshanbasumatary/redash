@@ -1,6 +1,4 @@
-/* global cy, Cypress */
-
-import { createQuery } from "../../support/redash-api";
+/* global cy */
 
 const SQL = `
   SELECT 'AR' AS "code", 'Argentina' AS "name", 37.62 AS "value" UNION ALL
@@ -34,7 +32,7 @@ describe("Choropleth", () => {
 
   beforeEach(() => {
     cy.login();
-    createQuery({ query: SQL }).then(({ id }) => {
+    cy.createQuery({ query: SQL }).then(({ id }) => {
       cy.visit(`queries/${id}/source`);
       cy.getByTestId("ExecuteButton").click();
     });
@@ -85,6 +83,7 @@ describe("Choropleth", () => {
     cy.getByTestId("VisualizationPreview")
       .find(".map-visualization-container.leaflet-container")
       .should("exist");
+
     cy.percySnapshot("Visualizations - Choropleth", { widths: [viewportWidth] });
   });
 });

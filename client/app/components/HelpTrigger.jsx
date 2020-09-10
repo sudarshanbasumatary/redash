@@ -1,10 +1,11 @@
-import { startsWith } from "lodash";
+import { startsWith, get } from "lodash";
 import React from "react";
 import PropTypes from "prop-types";
 import cx from "classnames";
 import Tooltip from "antd/lib/tooltip";
 import Drawer from "antd/lib/drawer";
-import Icon from "antd/lib/icon";
+import Link from "@/components/Link";
+import CloseOutlinedIcon from "@ant-design/icons/CloseOutlined";
 import BigMessage from "@/components/BigMessage";
 import DynamicComponent from "@/components/DynamicComponent";
 
@@ -42,13 +43,18 @@ export const TYPES = {
 
 export default class HelpTrigger extends React.Component {
   static propTypes = {
-    type: PropTypes.oneOf(Object.keys(TYPES)).isRequired,
+    type: PropTypes.oneOf(Object.keys(TYPES)),
+    href: PropTypes.string,
+    title: PropTypes.node,
     className: PropTypes.string,
     showTooltip: PropTypes.bool,
     children: PropTypes.node,
   };
 
   static defaultProps = {
+    type: null,
+    href: null,
+    title: null,
     className: null,
     showTooltip: true,
     children: <i className="fa fa-question-circle" />,
@@ -102,13 +108,15 @@ export default class HelpTrigger extends React.Component {
     this.setState({ currentUrl });
   };
 
+  getUrl = () => {
+    const helpTriggerType = get(TYPES, this.props.type);
+    return helpTriggerType ? DOMAIN + HELP_PATH + helpTriggerType[0] : this.props.href;
+  };
+
   openDrawer = () => {
     this.setState({ visible: true });
-    const [pagePath] = TYPES[this.props.type];
-    const url = DOMAIN + HELP_PATH + pagePath;
-
     // wait for drawer animation to complete so there's no animation jank
-    setTimeout(() => this.loadIframe(url), 300);
+    setTimeout(() => this.loadIframe(this.getUrl()), 300);
   };
 
   closeDrawer = event => {
@@ -120,16 +128,32 @@ export default class HelpTrigger extends React.Component {
   };
 
   render() {
-    const [, tooltip] = TYPES[this.props.type];
+    const tooltip = get(TYPES, `${this.props.type}[1]`, this.props.title);
     const className = cx("help-trigger", this.props.className);
     const url = this.state.currentUrl;
 
+    const isAllowedDomain = startsWith(url || this.getUrl(), DOMAIN);
+
     return (
       <React.Fragment>
-        <Tooltip title={this.props.showTooltip ? tooltip : null}>
-          <a onClick={this.openDrawer} className={className}>
-            {this.props.children}
-          </a>
+        <Tooltip
+          title={
+            this.props.showTooltip ? (
+              <>
+                {tooltip}
+                {!isAllowedDomain && <i className="fa fa-external-link" style={{ marginLeft: 5 }} />}
+              </>
+            ) : null
+          }>
+          {isAllowedDomain ? (
+            <a onClick={this.openDrawer} className={className}>
+              {this.props.children}
+            </a>
+          ) : (
+            <Link href={url || this.getUrl()} className={className} rel="noopener noreferrer" target="_blank">
+              {this.props.children}
+            </Link>
+          )}
         </Tooltip>
         <Drawer
           placement="right"
@@ -144,14 +168,14 @@ export default class HelpTrigger extends React.Component {
               {url && (
                 <Tooltip title="Open page in a new window" placement="left">
                   {/* eslint-disable-next-line react/jsx-no-target-blank */}
-                  <a href={url} target="_blank">
+                  <Link href={url} target="_blank">
                     <i className="fa fa-external-link" />
-                  </a>
+                  </Link>
                 </Tooltip>
               )}
               <Tooltip title="Close" placement="bottom">
                 <a onClick={this.closeDrawer}>
-                  <Icon type="close" />
+                  <CloseOutlinedIcon />
                 </a>
               </Tooltip>
             </div>
@@ -178,9 +202,9 @@ export default class HelpTrigger extends React.Component {
                 Something went wrong.
                 <br />
                 {/* eslint-disable-next-line react/jsx-no-target-blank */}
-                <a href={this.state.error} target="_blank" rel="noopener">
+                <Link href={this.state.error} target="_blank" rel="noopener">
                   Click here
-                </a>{" "}
+                </Link>{" "}
                 to open the page in a new window.
               </BigMessage>
             )}
