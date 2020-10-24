@@ -9,7 +9,7 @@ export default function YAxisSettings({ options, onOptionsChange }) {
 
   return (
     <React.Fragment>
-      <Section.Title>Left Y Axis</Section.Title>
+      <Section.Title>{!options.swappedAxes ? "Left Y Axis" : "X Axis"}</Section.Title>
 
       <Section>
         <AxisSettings
@@ -20,7 +20,7 @@ export default function YAxisSettings({ options, onOptionsChange }) {
         />
       </Section>
 
-      {options.globalSeriesType !== "heatmap" && (
+      {options.globalSeriesType !== "heatmap" && !options.swappedAxes && (
         <React.Fragment>
           <Section.Title>Right Y Axis</Section.Title>
 
@@ -31,6 +31,16 @@ export default function YAxisSettings({ options, onOptionsChange }) {
               options={rightYAxis}
               onChange={axis => onOptionsChange({ yAxis: [leftYAxis, axis] })}
             />
+          </Section>
+
+          <Section>
+            <Switch
+              id="chart-editor-y-axis-align-at-zero"
+              data-test="Chart.YAxis.AlignAtZero"
+              defaultChecked={options.alignYAxesAtZero}
+              onChange={alignYAxesAtZero => onOptionsChange({ alignYAxesAtZero })}>
+              Align Y Axes at Zero
+            </Switch>
           </Section>
         </React.Fragment>
       )}

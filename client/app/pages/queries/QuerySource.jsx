@@ -1,16 +1,16 @@
-import { isEmpty, find, map, extend, includes } from "lodash";
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import { extend, find, includes, isEmpty, map } from "lodash";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import cx from "classnames";
 import { useDebouncedCallback } from "use-debounce";
 import useMedia from "use-media";
 import Button from "antd/lib/button";
-import Select from "antd/lib/select";
 import routeWithUserSession from "@/components/ApplicationArea/routeWithUserSession";
 import Resizable from "@/components/Resizable";
 import Parameters from "@/components/Parameters";
 import EditInPlace from "@/components/EditInPlace";
 import recordEvent from "@/services/recordEvent";
+import DynamicComponent from "@/components/DynamicComponent";
 import { ExecutionStatus } from "@/services/query-result";
 import routes from "@/services/routes";
 
@@ -26,6 +26,7 @@ import { getEditorComponents } from "@/components/queries/editor-components";
 import useQuery from "./hooks/useQuery";
 import useVisualizationTabHandler from "./hooks/useVisualizationTabHandler";
 import useAutocompleteFlags from "./hooks/useAutocompleteFlags";
+import useAutoLimitFlags from "./hooks/useAutoLimitFlags";
 import useQueryExecute from "./hooks/useQueryExecute";
 import useQueryResultData from "@/lib/useQueryResultData";
 import useQueryDataSources from "./hooks/useQueryDataSources";
@@ -41,6 +42,7 @@ import useUpdateQuery from "./hooks/useUpdateQuery";
 import useUpdateQueryDescription from "./hooks/useUpdateQueryDescription";
 import useUnsavedChangesAlert from "./hooks/useUnsavedChangesAlert";
 
+import "./components/QuerySourceDropdown"; // register QuerySourceDropdown
 import "./QuerySource.less";
 
 function chooseDataSourceId(dataSourceIds, availableDataSources) {
@@ -76,6 +78,7 @@ function QuerySource(props) {
 
   const editorRef = useRef(null);
   const [autocompleteAvailable, autocompleteEnabled, toggleAutocomplete] = useAutocompleteFlags(schema);
+  const [autoLimitAvailable, autoLimitChecked, setAutoLimit] = useAutoLimitFlags(dataSource, query, setQuery);
 
   const [handleQueryEditorChange] = useDebouncedCallback(queryText => {
     setQuery(extend(query.clone(), { query: queryText }));
@@ -196,27 +199,14 @@ function QuerySource(props) {
           <nav>
             {dataSourcesLoaded && (
               <div className="editor__left__data-source">
-                <Select
-                  className="w-100"
-                  data-test="SelectDataSource"
-                  placeholder="Choose data source..."
+                <DynamicComponent
+                  name={"QuerySourceDropdown"}
+                  dataSources={dataSources}
                   value={dataSource ? dataSource.id : undefined}
                   disabled={!queryFlags.canEdit || !dataSourcesLoaded || dataSources.length === 0}
                   loading={!dataSourcesLoaded}
-                  optionFilterProp="data-name"
-                  showSearch
-                  onChange={handleDataSourceChange}>
-                  {map(dataSources, ds => (
-                    <Select.Option
-                      key={`ds-${ds.id}`}
-                      value={ds.id}
-                      data-name={ds.name}
-                      data-test={`SelectDataSource${ds.id}`}>
-                      <img src={`static/images/db-logos/${ds.type}.png`} width="20" alt={ds.name} />
-                      <span>{ds.name}</span>
-                    </Select.Option>
-                  ))}
-                </Select>
+                  onChange={handleDataSourceChange}
+                />
               </div>
             )}
             <div className="editor__left__schema">
@@ -304,6 +294,11 @@ function QuerySource(props) {
                         available: autocompleteAvailable,
                         enabled: autocompleteEnabled,
                         onToggle: toggleAutocomplete,
+                      }}
+                      autoLimitCheckboxProps={{
+                        available: autoLimitAvailable,
+                        checked: autoLimitChecked,
+                        onChange: setAutoLimit,
                       }}
                       dataSourceSelectorProps={
                         dataSource
